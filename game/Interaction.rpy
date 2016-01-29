@@ -49,7 +49,9 @@ init python:
     def flirtSelector(speaker):
         tempList = []
         for x in flirtList:
-            if speaker.getSex('mf') == x.sex and speaker.getCorr() >= x.corr and player.getCorr() >= x.corr:
+            if speaker.body.sex() == 'futa' and x.sex == 'female':
+                x.sex = 'futa'
+            if speaker.body.sex() == x.sex and speaker.getCorr() >= x.corr and player.getCorr() >= x.corr:
                 tempList.append(x)
         return tempList[rand(0,len(tempList) - 1)].id
 
@@ -60,7 +62,7 @@ init python:
         renpy.show('temp0', what = Image('pic/bg.png'), zorder = 0)
         renpy.show('temp1', what = Image(getCharImage(player), xalign=0.2, yalign= 1.0, yanchor = 'center'), zorder = 1)
         renpy.show('temp2', what = Image(getStudImg(interactionObj), xalign=0.8, yalign= 1.0, yanchor = 'center'), zorder = 1)
-
+# Функция getCharImage оставлена для совместимости и отлова багов. Позже её код надо будет заменить кодом getStudImg, а ту убрать.
     def getCharImage(char,*args):
         if char == player:
             anotherImage = player.picto
@@ -135,7 +137,7 @@ screen peopleTextList:
                             actions_list += [Show('show_stat'), Function(showChars)]    #, Function(changetime, 1)]
                     else:
                         actions_list += [Show('show_stat'), Function(showChars)]    #, Function(changetime, 1)]
-            textbutton x.name +  ' ' + x.locationStatus.name.lower():
+            textbutton x.name +  ' {i}' + x.locationStatus.name.lower()+  '{/i}': # Добавил курсив к статусу.
                 action actions_list
                 hovered [SetVariable('showHover',x),Show('showCharStatusText')]
                 unhovered [Hide('showCharStatusText')]
@@ -156,7 +158,6 @@ screen locationPeoplePicto:
                 actions_list = [Function(clrscr),
                                 SetVariable('interactionObj', x),
                                 SetVariable('reaction', reactionGen(x))]
-                                
                 if x.getLocationStatus() and x.getLocationStatus().events:
                     actions_list.append(Jump(choice(x.getLocationStatus()
                                                      .events)))
@@ -265,8 +266,41 @@ screen show_stat:
             if development == 1:
                 textbutton 'Карманы' xminimum 200 action Show('inventory_clothing_char')
 
+            null height 10
+            $ w_tooltip = ''
+            $ tmp_list = getWearList(interactionObj)
+            text '{u}Вы видите у собеседника:{/u}' style style.param xsize 240 text_align 0.5
+            null height 10
+            for z in [0, 1, 2, 3, 4] :
+                if tmp_list[int(z)] != 'none':
+                    vbox:
+                        xalign 0.99
+                        imagebutton:
+                            idle im.FactorScale(tmp_list[z].picto, 0.3)
+                            hover im.FactorScale(tmp_list[z].picto, 0.35)
+                            action NullAction()
+                            hovered [SetVariable('w_tooltip', '{u}'+tmp_list[z].name+ '{/u}\n' +tmp_list[z].description), Show('wear_tooltip')]
+                            unhovered [Hide('wear_tooltip')]
+                    null height 10
+
     frame ypos 0.01 xalign 1.0:
         text 'Очков общения: ' + str(interactionObj.sayCount)
+
+screen wear_tooltip:
+    python:
+        import pygame
+        x1, y1 = pygame.mouse.get_pos()
+        x2, y2 = pygame.Surface.get_size(pygame.display.get_surface())
+    fixed:
+        xpos float(x1-60)/float(x2)
+        ypos float(y1)/float(y2)
+        frame:
+            xmaximum 300
+            xanchor 1.0
+            yanchor 0.5
+            text ('[w_tooltip]'):
+                text_align 0.5
+                xsize 300
 
 ###########################################################################################################################
 screen make_gift_char:
@@ -361,7 +395,7 @@ label speak:
         user.sayCount -= 1
         changetime(5)
         player.stats.energy -= rand(5,10)
-        user.incLoy(3)
+        user.incLoy(1)
 
         if user == danokova and 'school' in getLoc(curloc).position:
             if mile_qwest_3_stage == 1 and ptime - mile_qwest_3_time > 12 and hour > 14:
