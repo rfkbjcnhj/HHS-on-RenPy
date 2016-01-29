@@ -59,7 +59,7 @@ init python:
         changetime(1)
         renpy.show('temp0', what = Image('pic/bg.png'), zorder = 0)
         renpy.show('temp1', what = Image(getCharImage(player), xalign=0.2, yalign= 1.0, yanchor = 'center'), zorder = 1)
-        renpy.show('temp2', what = Image(getCharImage(interactionObj), xalign=0.8, yalign= 1.0, yanchor = 'center'), zorder = 1)
+        renpy.show('temp2', what = Image(getStudImg(interactionObj), xalign=0.8, yalign= 1.0, yanchor = 'center'), zorder = 1)
 
     def getCharImage(char,*args):
         if char == player:
